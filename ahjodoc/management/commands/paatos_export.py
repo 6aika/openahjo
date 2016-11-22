@@ -5,7 +5,7 @@ import json
 
 from optparse import make_option
 from django.core.management.base import BaseCommand
-from django.db.models import ForeignKey, OneToOneField, ManyToManyField
+from django.db.models import FileField, ForeignKey, OneToOneField, ManyToManyField
 from mptt.models import TreeForeignKey
 from ahjodoc.models import *
 from decisions.models import *
@@ -29,6 +29,10 @@ class Command(BaseCommand):
             obj_data = {}
 
             for field in fields:
+                if type(field) == FileField:
+                    f = getattr(obj, field.name)
+                    obj_data['url'] = f.url if f else ''
+                    continue
                 if type(field) in (ForeignKey, OneToOneField, TreeForeignKey):
                     value = getattr(obj, '%s_id' % field.name)
                     if value is not None:
@@ -61,11 +65,11 @@ class Command(BaseCommand):
         objects['content_sections'] = self.serialize_model(ContentSection)
         objects['policymakers'] = self.serialize_model(Policymaker)
         objects['organizations'] = self.serialize_model(Organization)
+        objects['attachments'] = self.serialize_model(Attachment, exclude_fields=['hash'])
 
         self.logger.info('saving the file...')
 
-        f = open(self.options['output'], 'w')
-        f.write(json.dumps(objects))
-        f.close()
+        with open(self.options['output'], 'w') as f:
+            f.write(json.dumps(objects))
 
         self.logger.info('paatos export done!')
