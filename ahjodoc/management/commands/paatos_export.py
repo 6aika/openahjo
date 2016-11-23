@@ -15,6 +15,7 @@ class Command(BaseCommand):
     help = "Export OpenAHJO data"
     option_list = BaseCommand.option_list + (
         make_option('--output', dest='output', help='output filename'),
+        make_option('--prefetch', dest='prefetch', default=False, help='prefetch related models'),
     )
 
     def serialize_model(self, model, exclude_fields=None):
@@ -25,7 +26,12 @@ class Command(BaseCommand):
         fields = [field for field in all_fields if field.name not in exclude_fields]
         objects = []
 
-        for obj in model.objects.prefetch_related(*(field.name for field in model._meta.many_to_many)):
+        if self.options['prefetch']:
+            obj_qs = model.objects.prefetch_related(*(field.name for field in model._meta.many_to_many))
+        else:
+            obj_qs = model.objects.all()
+
+        for obj in obj_qs:
             obj_data = {}
 
             for field in fields:
