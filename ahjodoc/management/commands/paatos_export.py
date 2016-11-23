@@ -65,6 +65,7 @@ class Command(BaseCommand):
         self.logger.info('starting paatos export')
 
         objects['meetings'] = self.serialize_model(Meeting)
+        objects['issue_geometries'] = self.serialize_model(IssueGeometry)
         objects['issues'] = self.serialize_model(Issue)
         objects['agenda_items'] = self.serialize_model(AgendaItem)
         objects['categories'] = self.serialize_model(Category, exclude_fields=['lft', 'rght', 'tree_id', 'level'])
